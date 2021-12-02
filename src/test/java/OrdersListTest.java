@@ -53,7 +53,8 @@ public class OrdersListTest {
        List<Object> orders = given()
                 .header("Content-type", "application/json")
                 .when()
-                .get("/api/v1/orders").then().extract().jsonPath().getList("orders");
+                .get("/api/v1/orders").then().assertThat().statusCode(200)
+                .and().extract().jsonPath().getList("orders");
 
        //проверяем, что список не пустой
        assertFalse(orders.isEmpty());
