@@ -49,7 +49,8 @@ public class CreateOrderTest {
     @DisplayName("Формируем заказ, проверяем, что ответ не null")
     public void orderColorTest() {
         Response response = orderRequest(orderBody());
-        checkOrderResponse(response);
+        response.then().assertThat().statusCode(201)
+                .and().assertThat().body("track", notNullValue());
     }
 
     @Step ("Формируем тело запроса")
@@ -76,10 +77,5 @@ public class CreateOrderTest {
                 .post("/api/v1/orders");
 
               return response;
-    }
-    @Step ("Проверяем тестовый запрос")
-    public void checkOrderResponse(Response response){
-        response.then().assertThat().statusCode(201)
-                .and().assertThat().body("track", notNullValue());
     }
 }

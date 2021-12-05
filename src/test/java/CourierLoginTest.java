@@ -27,7 +27,9 @@ public class CourierLoginTest {
     public void courierLogin() {
 
        Response response = loginCourierPositive(createTestCourier());
-       checkResponseCourierLogin(response);
+        int id =  response.then().assertThat().statusCode(200).and().extract().path("id");
+
+        assertThat(id, notNullValue());
    }
 
    @Step("Создаём тестового курьера")
@@ -61,19 +63,16 @@ public class CourierLoginTest {
         return response;
     }
 
-    @Step ("Проверка id и статуса")
-    public void checkResponseCourierLogin (Response response){
-        int id =  response.then().assertThat().statusCode(200).and().extract().path("id");
-
-        assertThat(id, notNullValue());
-    }
-
     @Test
     @DisplayName("Курьер не может авторизоваться без передачи логина")
     public void testLoginWithoutLogin() {
 
         Response response = loginWithoutLogin(requestBodyLoginWithoutLogin());
-        checkResponseLoginWithoutLogin(response);
+
+        String messageWithoutLogin = response.then().assertThat()
+                .statusCode(400).and().extract().path("message");
+
+        assertThat(messageWithoutLogin, equalTo("Недостаточно данных для входа"));
 
     }
 
@@ -97,22 +96,17 @@ public class CourierLoginTest {
         return response;
     }
 
-    @Step ("Проверка респонса авторизации без логина")
-    public void checkResponseLoginWithoutLogin (Response response){
-
-        String messageWithoutLogin = response.then().assertThat()
-                .statusCode(400).and().extract().path("message");
-
-        assertThat(messageWithoutLogin, equalTo("Недостаточно данных для входа"));
-    }
-
     @Test
     @DisplayName("Курьер не может авторизоваться без передачи пароля")
     public void testLoginWithoutPassword(){
 
         Response response = loginWithoutPassword(requestBodyLoginWithoutPassword());
 
-        checkResponseLoginWithoutPassword(response);
+        String messageWithoutPassword = response.then()
+                .assertThat().statusCode(400)
+                .and().extract().path("message");
+
+        assertThat(messageWithoutPassword, equalTo("Недостаточно данных для входа"));
         }
 
     @Step ("Тело реквеста для авторизации без пароля")
@@ -135,20 +129,49 @@ public class CourierLoginTest {
 
         return response;
     }
-    @Step ("Проверка респонса авторизации без пароля")
-    public void checkResponseLoginWithoutPassword (Response response) {
-        String messageWithoutPassword = response.then()
-                .assertThat().statusCode(400).and().extract().path("message");
+    @Test
+    @DisplayName("Курьер не может авторизоваться без передачи логина и пароля")
+    public void testLoginWithoutLoginPassword(){
 
-        assertThat(messageWithoutPassword, equalTo("Недостаточно данных для входа"));
+        Response response = loginWithoutLoginPassword(requestBodyLoginWithoutLoginPassword());
+
+        String messageWithoutLoginPassword = response.then()
+                .assertThat().statusCode(400)
+                .and().extract().path("message");
+
+        assertThat(messageWithoutLoginPassword, equalTo("Недостаточно данных для входа"));
     }
 
-    @Test
+    @Step ("Тело реквеста для авторизации без логина пароля")
+    public String requestBodyLoginWithoutLoginPassword(){
+
+        String loginRequestBodyWithoutLoginPassword = "{}";
+
+        return loginRequestBodyWithoutLoginPassword;
+    }
+
+    @Step ("Авторизация без логина и пароля")
+    public Response loginWithoutLoginPassword(String body){
+
+        Response response = given()
+                .header("Content-type", "application/json")
+                .and()
+                .body(body)
+                .when()
+                .post("/api/v1/courier/login");
+
+        return response;
+    }
+
+   @Test
     @DisplayName("Если логин неверный, запрос вернёт ошибку")
     public void testLoginWithBadLogin() {
 
-        Response response = loginWithBadLogin(requestBodyLoginWithBadLogin());
-        checkResponseLoginWithBadLogin(response);
+       Response response = loginWithBadLogin(requestBodyLoginWithBadLogin());
+       String messageWithBadLogin = response.then().assertThat()
+               .statusCode(404).and().extract().path("message");
+
+       assertThat(messageWithBadLogin, equalTo("Учетная запись не найдена"));
     }
 
     @Step ("Тело реквеста для авторизации c неправильным логином")
@@ -172,20 +195,15 @@ public class CourierLoginTest {
 
         return response;
     }
-    @Step ("Проверка респонса авторизации с неправильным логином")
-    public void checkResponseLoginWithBadLogin (Response response) {
 
-        String messageWithBadLogin = response.then().assertThat()
-                .statusCode(404).and().extract().path("message");
-
-        assertThat(messageWithBadLogin, equalTo("Учетная запись не найдена"));
-    }
     @Test
     @DisplayName("Если пароль неверный, запрос вернёт ошибку")
     public void testLoginWithBadPassword() {
 
         Response response = loginWithBadPassword(requestBodyLoginWithBadPassword());
-        checkResponseLoginWithBadPassword(response);
+        String messageWithBadPassword = response.then().assertThat().statusCode(404).and().extract().path("message");
+
+        assertThat(messageWithBadPassword, equalTo("Учетная запись не найдена"));
 
     }
 
@@ -211,18 +229,16 @@ public class CourierLoginTest {
 
     }
     @Step ("Проверка респонса авторизации с неправильным паролем")
-    public void checkResponseLoginWithBadPassword (Response response) {
-        String messageWithBadPassword = response.then().assertThat().statusCode(404).and().extract().path("message");
-
-        assertThat(messageWithBadPassword, equalTo("Учетная запись не найдена"));
-    }
 
     @Test
     @DisplayName("Если пароль и логин неверный, запрос вернёт ошибку (несуществующий пользователь)")
     public void testLoginWithBadLoginPassword() {
 
         Response response = loginWithBadLoginPassword(requestBodyLoginWithBadLoginPassword());
-        checkResponseLoginWithBadLoginPassword(response);
+        String messageWithBadLoginPassword = response.then()
+                .assertThat().statusCode(404).and().extract().path("message");
+
+        assertThat(messageWithBadLoginPassword, equalTo("Учетная запись не найдена"));
 
     }
 
@@ -251,9 +267,7 @@ public class CourierLoginTest {
 
     @Step ("Проверка респонса авторизации с неверным паролем и логином (несуществующий пользователь)")
     public void checkResponseLoginWithBadLoginPassword (Response response) {
-        String messageWithBadLoginPassword = response.then().assertThat().statusCode(404).and().extract().path("message");
 
-        assertThat(messageWithBadLoginPassword, equalTo("Учетная запись не найдена"));
     }
 
     @Step ("Получаем id для удаления")

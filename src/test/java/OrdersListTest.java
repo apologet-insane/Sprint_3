@@ -28,9 +28,9 @@ public class OrdersListTest {
     }
 
     @Test
-    @DisplayName("Получаем список заказов")
+    @DisplayName("Проверяем, что список заказов не пустой")
     public void getOrdersList() {
-        checkOrders(orders());
+        assertFalse(orders().isEmpty());
 
     }
 
@@ -56,7 +56,7 @@ public class OrdersListTest {
                 .and().extract().path("track");
     }
 
-    @Step
+    @Step ("Получаем список заказов")
     public List<Object> orders () {
     //получаем список заказов и сохраняем в orders
     List<Object> orders = given()
@@ -65,16 +65,8 @@ public class OrdersListTest {
             .get("/api/v1/orders").then().assertThat().statusCode(200)
             .and().extract().jsonPath().getList("orders");
     return orders;
+    }
+
 }
-    @Step("Проверяем, что список не пустой")
-    public void checkOrders(List<Object> orders){
-
-        assertFalse(orders.isEmpty());
-
-    }
-
-
-
-    }
 
 

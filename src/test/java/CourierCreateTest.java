@@ -24,7 +24,8 @@ public class CourierCreateTest {
     @DisplayName("Проверка создания курьера: код ответа и тело: ok:true")
     public void createCourierPosistive(){
         Response response = createCourierPositive(registerRequestBody());
-        checkResponsePositveCreateCourier(response);
+        response.then().assertThat().statusCode(201);
+        response.then().assertThat().body("ok", equalTo(true));
     }
 
     @Step ("Позитивный запрос на создание курьера")
@@ -49,17 +50,14 @@ public class CourierCreateTest {
         return registerRequestBody;
     }
 
-    @Step("Проверка позитивного респонса на создание курьера")
-    public void checkResponsePositveCreateCourier(Response response) {
-        response.then().assertThat().statusCode(201);
-        response.then().assertThat().body("ok", equalTo(true));
-    }
 
     @Test
     @DisplayName("Нельзя создать двух одинаковых курьеров с одинаковыми логинами")
     public void testTwoSameCouriers() {
         Response response = createTwoSameCouriers(registerRequestBody());
-        checkResponseCreateSameCouriers(response);
+        response.then().assertThat().statusCode(409);
+        response.then().assertThat().
+                body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
 
     }
 
@@ -82,20 +80,17 @@ public class CourierCreateTest {
        return response;
     }
 
-    @Step("Проверка респонса на создание курьера с данными уже существующего курьера")
-    public void checkResponseCreateSameCouriers(Response response) {
-        response.then().assertThat().statusCode(409);
-        response.then().assertThat().
-                body("message", equalTo("Этот логин уже используется. Попробуйте другой."));
-    }
-
     @Test
     @DisplayName("Чтобы создать курьера, нужно передать в ручку все обязательные поля: " +
             "если нет логина, возвращается ошибка")
     public void testCreateCourierWithoutLogin() {
 
         Response response = createCourierWithoutLogin(registerRequestBodyWithoutLogin());
-        checkResponseCreateCourierWithoutLogin(response);
+        String messageWithoutLogin = response.then().assertThat()
+                .statusCode(400).and().extract()
+                .path("message");
+
+        assertThat(messageWithoutLogin, equalTo("Недостаточно данных для создания учетной записи"));
 
     }
 
@@ -119,14 +114,6 @@ public class CourierCreateTest {
 
         return response;
     }
-    @Step("Проверка респонса на создание курьера без передачи логина")
-    public void checkResponseCreateCourierWithoutLogin(Response response) {
-        String messageWithoutLogin = response.then().assertThat()
-                .statusCode(400).and().extract()
-                .path("message");
-
-        assertThat(messageWithoutLogin, equalTo("Недостаточно данных для создания учетной записи"));
-    }
 
     @Test
     @DisplayName("Чтобы создать курьера, нужно передать в ручку все обязательные поля: " +
@@ -134,7 +121,11 @@ public class CourierCreateTest {
     public void testCreateCourierWithoutPassword(){
 
         Response response = createCourierWithoutPassword(registerRequestBodyWithoutPassword());
-        checkResponseCreateCourierWithoutPassword(response);
+        String messageWithoutPassword =
+                response.then().assertThat().statusCode(400).and().extract()
+                        .path("message");
+
+        assertThat(messageWithoutPassword, equalTo("Недостаточно данных для создания учетной записи"));
 
     }
 
@@ -157,15 +148,6 @@ public class CourierCreateTest {
                 .post("/api/v1/courier");
 
         return response;
-    }
-
-    @Step("Проверка респонса на создание курьера без передачи пароля")
-    public void checkResponseCreateCourierWithoutPassword(Response response) {
-        String messageWithoutPassword =
-                response.then().assertThat().statusCode(400).and().extract()
-                        .path("message");
-
-        assertThat(messageWithoutPassword, equalTo("Недостаточно данных для создания учетной записи"));
     }
 }
 
