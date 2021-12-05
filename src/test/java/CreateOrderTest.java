@@ -1,6 +1,9 @@
+import io.qameta.allure.Step;
 import io.qameta.allure.junit4.DisplayName;
 import io.restassured.RestAssured;
+import io.restassured.response.Response;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,10 +18,10 @@ public class CreateOrderTest {
     String firstName = RandomStringUtils.randomAlphabetic(10);
     String lastName = RandomStringUtils.randomAlphabetic(10);
     String address = RandomStringUtils.randomAlphabetic(10) + ", "+ RandomStringUtils.randomNumeric(2);
-    String metroStation = RandomStringUtils.randomNumeric(1);
+    String metroStation =  ""+ RandomUtils.nextInt(1, 20) + "";
     String phone = "+7 "+ RandomStringUtils.randomNumeric(10);
-    String rentTime = RandomStringUtils.randomNumeric(1);
-    String deliveryDate = RandomStringUtils.randomNumeric(4)+"-"+"0" + RandomStringUtils.randomNumeric(1)+ "-"+"0"+RandomStringUtils.randomNumeric(1);
+    String rentTime = ""+ RandomUtils.nextInt(1, 9) + "";
+    String deliveryDate = RandomUtils.nextInt(2021, 2029)+"-"+"0" + RandomUtils.nextInt(1, 9)+ "-"+"0"+RandomUtils.nextInt(1, 9);
     String comment = RandomStringUtils.randomAlphabetic(10);
     String color;
 
@@ -45,24 +48,38 @@ public class CreateOrderTest {
     @Test
     @DisplayName("Формируем заказ, проверяем, что ответ не null")
     public void orderColorTest() {
+        Response response = orderRequest(orderBody());
+        checkOrderResponse(response);
+    }
 
-        String orderBody = "{\"firstName\":\"" + firstName + "\","
-                + "\"lastName\":\"" + lastName + "\","
-                + "\"address\":\"" + address + "\","
-                + "\"metroStation\":" + metroStation + ","
-                + "\"phone\":\"" + phone + "\","
-                + "\"rentTime\":" + rentTime + ","
-                + "\"deliveryDate\":\"" + deliveryDate + "\","
-                + "\"comment\":\"" + comment +"\","
-                + "\"color\":" + color + "}";
+    @Step ("Формируем тело запроса")
+    public String orderBody() {
+            String bodyOrder = "{\"firstName\":\"" + firstName + "\","
+                    + "\"lastName\":\"" + lastName + "\","
+                    + "\"address\":\"" + address + "\","
+                    + "\"metroStation\":" + metroStation + ","
+                    + "\"phone\":\"" + phone + "\","
+                    + "\"rentTime\":" + rentTime + ","
+                    + "\"deliveryDate\":\"" + deliveryDate + "\","
+                    + "\"comment\":\"" + comment + "\","
+                    + "\"color\":" + color + "}";
+            return bodyOrder;
+    }
 
-                 given()
+    @Step ("Формируем тестовый запрос")
+    public Response orderRequest(String body){
+              Response response =   given()
                 .header("Content-type", "application/json")
                 .and()
-                .body(orderBody)
+                .body(body)
                 .when()
-                .post("/api/v1/orders")
-                .then().assertThat().statusCode(201)
+                .post("/api/v1/orders");
+
+              return response;
+    }
+    @Step ("Проверяем тестовый запрос")
+    public void checkOrderResponse(Response response){
+        response.then().assertThat().statusCode(201)
                 .and().assertThat().body("track", notNullValue());
     }
 }

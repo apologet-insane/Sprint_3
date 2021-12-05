@@ -63,7 +63,7 @@
                         <artifactId>aspectjweaver</artifactId>
                         <version>${aspectj.version}</version>
                     </dependency>
-                </dependencies>
+                    </dependencies>
             </plugin>
                <plugin>
                 <groupId>io.qameta.allure</groupId>
