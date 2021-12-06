@@ -11,10 +11,9 @@ import static org.hamcrest.Matchers.*;
 
 public class CourierLoginTest {
 
-   final static String courierLogin = RandomStringUtils.randomAlphabetic(10);
+    final static String courierLogin = RandomStringUtils.randomAlphabetic(10);
    final static  String courierPassword = RandomStringUtils.randomAlphabetic(10);
    final static String courierFirstName = RandomStringUtils.randomAlphabetic(10);
-
 
     @Before
     public void setUp() {
@@ -85,7 +84,7 @@ public class CourierLoginTest {
     }
 
     @Step ("Авторизация без логина")
-    public Response loginWithoutLogin(String body) {
+    public Response loginWithoutLogin(String body)  {
         Response response = given()
                 .header("Content-type", "application/json")
                 .and()
@@ -96,6 +95,8 @@ public class CourierLoginTest {
         return response;
     }
 
+    //как сделать время ожидания запроса меньше 1 минуты, в документации не найдено
+    //все студенты сообщили, что просто закомментировали данный тест, как баг. 1 минута на ожидание не так уж и долго
     @Test
     @DisplayName("Курьер не может авторизоваться без передачи пароля")
     public void testLoginWithoutPassword(){
@@ -129,6 +130,8 @@ public class CourierLoginTest {
 
         return response;
     }
+    //как сделать время ожидания запроса меньше 1 минуты, в документации не найдено
+    //все студенты сообщили, что просто закомментировали данный тест, как баг. 1 минута на ожидание не так уж и долго
     @Test
     @DisplayName("Курьер не может авторизоваться без передачи логина и пароля")
     public void testLoginWithoutLoginPassword(){
